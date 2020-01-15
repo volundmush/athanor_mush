@@ -20,8 +20,9 @@ class AthanorThemeController(AthanorGlobalScript):
     def at_start(self):
         from django.conf import settings
         try:
-            self.ndb.theme_typeclass = class_from_module(settings.BASE_THEME_TYPECLASS,
-                                                     defaultpaths=settings.TYPECLASS_PATHS)
+            theme_typeclass = getattr(settings, "BASE_THEME_TYPECLASS", "athanor_mush.gamedb.themes.AthanorTheme")
+            self.ndb.theme_typeclass = class_from_module(theme_typeclass, defaultpaths=settings.TYPECLASS_PATHS)
+
         except Exception:
             log_trace()
             self.ndb.theme_typeclass = AthanorTheme
