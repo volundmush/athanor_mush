@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q
 from athanor.utils.text import partial_match
 from evennia.utils.utils import lazy_property
+from evennia.typeclasses.models import SharedMemoryModel
 
 
 class MushObject(models.Model):
@@ -169,7 +170,28 @@ class MushAttribute(models.Model):
     attr = models.ForeignKey(MushAttributeName, related_name='characters', on_delete=models.SET_NULL)
     value = models.TextField(blank=True)
 
-
     class Meta:
         unique_together = (("dbref", "attr"),)
 
+
+class ThemeBridge(SharedMemoryModel):
+    db_script = models.OneToOneField('scripts.ScriptDB', related_name='theme_bridge', primary_key=True,
+                                     on_delete=models.CASCADE)
+    db_name = models.CharField(max_length=255, null=False, blank=False)
+    db_iname = models.CharField(max_length=255, null=False, blank=False, unique=True)
+    db_cname = models.CharField(max_length=255, null=False, blank=False)
+
+    class Meta:
+        verbose_name = 'Theme'
+        verbose_name_plural = 'Themes'
+
+
+class ThemeParticipant(SharedMemoryModel):
+    db_theme = models.ForeignKey(ThemeBridge, related_name='participants', on_delete=models.CASCADE)
+    db_object = models.ForeignKey('objects.ObjectDB', related_name='themes', on_delete=models.CASCADE)
+    db_list_type = models.CharField(max_length=50, blank=False, null=False)
+
+    class Meta:
+        unique_together = (('db_theme', 'db_object'),)
+        verbose_name = 'ThemeParticipant'
+        verbose_name_plural = 'ThemeParticipants'
